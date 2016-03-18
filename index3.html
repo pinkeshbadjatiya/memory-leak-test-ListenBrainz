@@ -109,6 +109,7 @@ Scrobble.prototype.asJSONSerializable = function () {
 };
 
 function encodeScrobbles(jsonstr) {
+    console.log(jsonstr);
     var scrobbles = JSON.parse(jsonstr);
     scrobbles = scrobbles['recenttracks']['track'];
 
