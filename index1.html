@@ -116,7 +116,7 @@ function getLastFMPage(page) {
         }, 3000);
     }
 
-    var url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user={{ lastfm_username }}&api_key={{ lastfm_api_key }}&format=json&page=" + page;
+    var url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=nasasie&api_key=7d337156c01c808ee039529c7580d6cf&format=json&page=" + page;
 
     var xhr = new XMLHttpRequest();
     xhr.timeout = 10 * 1000; // 10 seconds
@@ -169,7 +169,7 @@ function getPageCount() {
             getPageCount();
         }, 3000);
     }
-    var url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user={{ lastfm_username }}&api_key={{ lastfm_api_key }}&format=json&page=" + page;
+    var url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=nasasie&api_key=7d337156c01c808ee039529c7580d6cf&format=json&page=" + page;
 
     var xhr = new XMLHttpRequest();
     xhr.timeout = 10 * 1000; // 10 seconds
@@ -178,13 +178,13 @@ function getPageCount() {
         if (/^2/.test(this.status)) {
             var temp = JSON.parse(this.response);
 						if ('error' in temp) {
-								updateMessage("<i class='fa fa-error'></i>" + temp['message'] + "<br><span><a href='https://listenbrainz.org/user/{{ user_id }}>Go to your ListenBrainz profile</a> | <a href='' id='close-progress-container'>Close</a></span><br><span style='font-size:8pt'>Thank you for using ListenBrainz</span>");
+								updateMessage("<i class='fa fa-error'></i>" + temp['message'] + "<br><span><a href='https://listenbrainz.org/user/armalcolite>Go to your ListenBrainz profile</a> | <a href='' id='close-progress-container'>Close</a></span><br><span style='font-size:8pt'>Thank you for using ListenBrainz</span>");
 								completeMessage();
 								return;
 						}
             numberOfPages = temp['recenttracks']['@attr']['totalPages'];
             if (numberOfPages == 0) {
-								updateMessage("<i class='fa fa-check'></i> Import finished<br><span><a href='https://listenbrainz.org/user/{{ user_id }}>Go to your ListenBrainz profile</a> | <a href='' id='close-progress-container'>Close</a></span><br><span style='font-size:8pt'>Thank you for using ListenBrainz</span>");
+								updateMessage("<i class='fa fa-check'></i> Import finished<br><span><a href='https://listenbrainz.org/user/armalcolite>Go to your ListenBrainz profile</a> | <a href='' id='close-progress-container'>Close</a></span><br><span style='font-size:8pt'>Thank you for using ListenBrainz</span>");
                 completeMessage();
             }
             else {
@@ -218,10 +218,10 @@ function reportScrobbles(struct) {
 
     timesReportScrobbles++;
     //must have a trailing slash
-    var reportingURL = "{{ base_url }}" + "/";
+    var reportingURL = "http://api.listenbrainz.org/1/submit-listens?user_id=armalcolite" + "/";
     var xhr = new XMLHttpRequest();
     xhr.open("POST", reportingURL);
-    xhr.setRequestHeader("Authorization", "Token {{ user_token }}");
+    xhr.setRequestHeader("Authorization", "Token 491253f4-5692-45cf-84de-50bcaa91f76d");
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.timeout = 10 * 1000; // 10 seconds
     xhr.onload = function(content) {
@@ -243,7 +243,7 @@ function reportScrobbles(struct) {
             pageDone();
         }
         if (numCompleted >= numberOfPages) {
-						updateMessage("<i class='fa fa-check'></i> Import finished<br><span><a href='https://listenbrainz.org/user/{{ user_id }}>Go to your ListenBrainz profile</a> | <a href='' id='close-progress-container'>Close</a></span><br><span style='font-size:8pt'>Thank you for using ListenBrainz</span>");
+						updateMessage("<i class='fa fa-check'></i> Import finished<br><span><a href='https://listenbrainz.org/user/armalcolite>Go to your ListenBrainz profile</a> | <a href='' id='close-progress-container'>Close</a></span><br><span style='font-size:8pt'>Thank you for using ListenBrainz</span>");
             completeMessage();
         } else {
             updateMessage("<i class='fa fa-cog fa-spin'></i> Sending page " + numCompleted + " of " + numberOfPages + " to ListenBrainz<br><span style='font-size:8pt'>Please don't navigate while this is running</span>");
@@ -300,7 +300,7 @@ function pageDone() {
 
 function updateMessage(message) {
     document.getElementById("listen-progress-container").innerHTML =  "" +
-        "<img src='{{ url_for('static', filename='img/listenbrainz-logo.svg', _external=True) }}' height='75'><br><br>" +
+        "<img src='https://listenbrainz.org/static/img/listenbrainz-logo.svg' height='75'><br><br>" +
         message + "<br>" +
         "<span style='display:none'>" +
         "reportedScrobbles " + timesReportScrobbles +
