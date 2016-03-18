@@ -9,44 +9,44 @@
 
 <script>
 var XHRFactory = (function(){
-// static private member
-var stack = new Array();
-var poolSize = 10;
+    // static private member
+    var stack = new Array();
+    var poolSize = 10;
+    var MAX_ACTIVE_SUBMISSIONS = 10;
 
-var nullFunction = function() {}; // for nuking the onreadystatechange
+    var nullFunction = function() {}; // for nuking the onreadystatechange
 
-// private static methods
+    // private static methods
+    function createXHR() {
+        if (window.XMLHttpRequest) {
+            return new XMLHttpRequest();
+        } else if (window.ActiveXObject) {
+            return new ActiveXObject('Microsoft.XMLHTTP')
+        }
+    }
 
-function createXHR() {
-if (window.XMLHttpRequest) {
-return new XMLHttpRequest();
-} else if (window.ActiveXObject) {
-return new ActiveXObject('Microsoft.XMLHTTP')
-}
-}
+    // cache a few for use
+    for (var i = 0; i < poolSize; i++) {
+        stack.push(createXHR());
+    }
 
-// cache a few for use
-for (var i = 0; i < poolSize; i++) {
-stack.push(createXHR());
-}
-
-// shared instance methods
-return ({
-release:function(xhr){
-xhr.onreadystatechange = nullFunction;
-stack.push(xhr);
-},
-getInstance:function(){
-if (stack.length < 1) {
-return createXHR();
-} else {
-return stack.pop();
-}
-},
-toString:function(){
-return "stack size = " + stack.length;
-}
-});
+    // shared instance methods
+    return ({
+        release:function(xhr){
+            xhr.onreadystatechange = nullFunction;
+            stack.push(xhr);
+        },
+        getInstance:function(){
+            if (stack.length < 1) {
+                return createXHR();
+            } else {
+                return stack.pop();
+            }
+        },
+        toString:function(){
+            return "stack size = " + stack.length;
+        }
+    });
 })();
 
 
@@ -76,18 +76,10 @@ function each(applicable, collection) {
     }
 }
 
-function isSpotifyURI(uri) {
-    return !!(/open.spotify/.exec(uri));
-}
-
 function Scrobble(rootScrobbleElement) {
     this.rootScrobbleElement = rootScrobbleElement;
 }
 
-Scrobble.prototype.lastfmID = function () {
-    var loveButtonURL = this.rootScrobbleElement['url'];
-    return extractlastFMIDFromURL(loveButtonURL);
-};
 
 Scrobble.prototype.artistName = function () {
     var artistName = this.rootScrobbleElement['artist']['#text'];
@@ -104,15 +96,6 @@ Scrobble.prototype.scrobbledAt = function () {
     return date;
 };
 
-Scrobble.prototype.optionalSpotifyID = function () {
-    return select(
-            isSpotifyURI,
-            map(
-                function(elem) { return elem.getAttribute("href") },
-                this.rootScrobbleElement.getElementsByTagName("a")
-               )
-            )[0];
-};
 
 Scrobble.prototype.asJSONSerializable = function () {
     return {
@@ -124,11 +107,6 @@ Scrobble.prototype.asJSONSerializable = function () {
 
     }
 };
-
-function extractlastFMIDFromURL(loveButtonURL) {
-    var parts = loveButtonURL.split("/");
-    return parts.slice(0, parts.length-2).join("/");
-}
 
 function encodeScrobbles(jsonstr) {
     var scrobbles = JSON.parse(jsonstr);
@@ -162,7 +140,7 @@ function getLastFMPage(page) {
     var xhr = XHRFactory.getInstance();
     xhr.timeout = 10 * 1000; // 10 seconds
     xhr.open("GET", encodeURI(url));
-    xhr.onload = function () {
+    xhr.onreadystatechange = function () {
         if (/^2/.test(this.status)) {
             reportPageAndGetNext(this.response);
         } else if (/^5/.test(this.status)) {
@@ -172,6 +150,7 @@ function getLastFMPage(page) {
             // ignore 40x
             pageDone();
         }
+        console.log('RELEASED');
         XHRFactory.release(xhr);
     };
     xhr.ontimeout = function () {
@@ -188,9 +167,9 @@ function getLastFMPage(page) {
     //xhr = null;
 }
 
-var version = "1.4";
+var version = "1.0";
 var page = 1;
-var numberOfPages = 1;
+var numberOfPages = 300;
 
 var toReport = [];
 var numCompleted = 0;
@@ -201,54 +180,6 @@ var timesGetPage = 0;
 var times4Error = 0;
 var times5Error = 0;
 
-function getPageCount() {
-    function getCountAgain(reason) {
-        console.warn(reason + ' fetching last.fm pagecount, retrying in 3s');
-        setTimeout(function () {
-            getPageCount();
-        }, 3000);
-    }
-    var url = "http://ws.audioscrobbler.com/2.0/?method=user.getrecenttracks&user=nasasie&api_key=7d337156c01c808ee039529c7580d6cf&format=json&page=" + page;
-
-    var xhr = new XMLHttpRequest();
-    xhr.timeout = 10 * 1000; // 10 seconds
-    xhr.open("GET", encodeURI(url));
-    xhr.onload = function () {
-        if (/^2/.test(this.status)) {
-            var temp = JSON.parse(this.response);
-		if ('error' in temp) {
-		    updateMessage("<i class='fa fa-error'></i>" + temp['message'] + "<br><span><a href='https://listenbrainz.org/user/armalcolite>Go to your ListenBrainz profile</a> | <a href='' id='close-progress-container'>Close</a></span><br><span style='font-size:8pt'>Thank you for using ListenBrainz</span>");
-		    completeMessage();
-		    return;
-		}
-            numberOfPages = temp['recenttracks']['@attr']['totalPages'];
-            if (numberOfPages == 0) {
-		updateMessage("<i class='fa fa-check'></i> Import finished<br><span><a href='https://listenbrainz.org/user/armalcolite>Go to your ListenBrainz profile</a> | <a href='' id='close-progress-container'>Close</a></span><br><span style='font-size:8pt'>Thank you for using ListenBrainz</span>");
-                completeMessage();
-            }
-            else {
-                getNextPagesIfSlots();
-            }
-        } else if (/^5/.test(this.status)) {
-            getCountAgain('got ' + this.status);
-        } else {
-            // ignore 40x
-            getNextPagesIfSlots();
-        }
-    };
-    xhr.ontimeout = function () {
-        retry('timeout');
-    };
-    xhr.onabort = function () {
-        // this should never happen
-        pageDone();
-    };
-    xhr.onerror = function () {
-        retry('error');
-    };
-    xhr.send();
-    //xhr = null;
-}
 
 function reportScrobbles(struct) {
     if (!struct.payload.length) {
@@ -259,12 +190,13 @@ function reportScrobbles(struct) {
     timesReportScrobbles++;
     //must have a trailing slash
     var reportingURL = "https://listenbrainz.org/1/submit-listens?user_id=armalcolite" + "/";
-    var xhr = new XMLHttpRequest();
+    //var xhr = new XMLHttpRequest();
+    var xhr = XHRFactory.getInstance();
     xhr.open("POST", reportingURL);
     xhr.setRequestHeader("Authorization", "Token e5cbceff-f102-4d24-9a49-43435ed7a834");
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.timeout = 10 * 1000; // 10 seconds
-    xhr.onload = function(content) {
+    xhr.onreadystatechange = function(content) {
         if (this.status >= 200 && this.status < 300) {
             console.log("successfully reported page");
             pageDone();
@@ -288,6 +220,8 @@ function reportScrobbles(struct) {
         } else {
             updateMessage("<i class='fa fa-cog fa-spin'></i> Sending page " + numCompleted + " of " + numberOfPages + " to ListenBrainz<br><span style='font-size:8pt'>Please don't navigate while this is running</span>");
         }
+        console.log('RELEASED: reporter...');
+        XHRFactory.release(xhr);
     };
     xhr.ontimeout = function(context) {
         console.log("timeout, req'ing");
@@ -325,7 +259,7 @@ function reportPageAndGetNext(response) {
 function getNextPagesIfSlots() {
     // Get a new lastfm page and queue it only if there are more pages to download and we have
     // less than 10 pages waiting to submit
-    while (page <= numberOfPages && activeSubmissions < 10) {
+    while (page <= numberOfPages && activeSubmissions < MAX_ACTIVE_SUBMISSIONS) {
         activeSubmissions++;
         getLastFMPage(page);
         page += 1;
@@ -353,7 +287,7 @@ function start() {
     document.body.insertAdjacentHTML( 'afterbegin', '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">');
     document.body.insertAdjacentHTML( 'afterbegin', '<div style="position:absolute; top:200px; z-index: 200000000000000; width:500px; margin-left:-250px; left:50%; background-color:#fff; box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22); text-align:center; padding:50px;" id="listen-progress-container"></div>');
     updateMessage("");
-    getPageCount();
+    getNextPagesIfSlots();
 }
 
 
