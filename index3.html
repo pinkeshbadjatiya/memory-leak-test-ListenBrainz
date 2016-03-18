@@ -5,7 +5,7 @@
 <h2>Memory Leak for LB-68</h2>
 <p>https://github.com/metabrainz/listenbrainz-server/pull/72</p>
 
-<button onclick="start()">Full PLAYLIST</button>
+<button onclick="start()">Download 500 pages</button>
 
 <script>
 var MAX_ACTIVE_SUBMISSIONS = 10;
@@ -170,7 +170,7 @@ function getLastFMPage(page) {
 
 var version = "1.0";
 var page = 1;
-var numberOfPages = 300;
+var numberOfPages = 500;
 
 var toReport = [];
 var numCompleted = 0;
