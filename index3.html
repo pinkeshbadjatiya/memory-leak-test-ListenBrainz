@@ -8,11 +8,11 @@
 <button onclick="start()">Full PLAYLIST</button>
 
 <script>
+var MAX_ACTIVE_SUBMISSIONS = 10;
 var XHRFactory = (function(){
     // static private member
     var stack = new Array();
     var poolSize = 10;
-    var MAX_ACTIVE_SUBMISSIONS = 10;
 
     var nullFunction = function() {}; // for nuking the onreadystatechange
 
