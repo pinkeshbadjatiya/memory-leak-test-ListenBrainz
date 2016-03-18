@@ -148,9 +148,6 @@ function getLastFMPage(page) {
 var version = "1.4";
 var page = 1;
 var numberOfPages = 1;
-if (document.querySelector('.pages') != null) {
-   numberOfPages = parseInt(document.getElementsByClassName("pages")[0].innerHTML.trim().split(" ")[3]);
-}
 
 var toReport = [];
 var numCompleted = 0;
@@ -162,6 +159,8 @@ var times4Error = 0;
 var times5Error = 0;
 
 function getPageCount() {
+    numberOfPages = 200;
+    return;
     function getCountAgain(reason) {
         console.warn(reason + ' fetching last.fm pagecount, retrying in 3s');
         setTimeout(function () {
