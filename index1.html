@@ -218,7 +218,7 @@ function reportScrobbles(struct) {
 
     timesReportScrobbles++;
     //must have a trailing slash
-    var reportingURL = "http://api.listenbrainz.org/1/submit-listens?user_id=armalcolite" + "/";
+    var reportingURL = "https://listenbrainz.org/1/submit-listens?user_id=armalcolite" + "/";
     var xhr = new XMLHttpRequest();
     xhr.open("POST", reportingURL);
     xhr.setRequestHeader("Authorization", "Token 491253f4-5692-45cf-84de-50bcaa91f76d");
