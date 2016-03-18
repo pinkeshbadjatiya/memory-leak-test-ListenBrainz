@@ -42,7 +42,7 @@ function isSpotifyURI(uri) {
     return !!(/open.spotify/.exec(uri));
 }
 
-function Scrobble(rootScrobbleElement) {
+function Scrobble(rootScrobbleElement) {re
     this.rootScrobbleElement = rootScrobbleElement;
 }
 
@@ -223,7 +223,7 @@ function reportScrobbles(struct) {
     var reportingURL = "https://listenbrainz.org/1/submit-listens?user_id=armalcolite" + "/";
     var xhr = new XMLHttpRequest();
     xhr.open("POST", reportingURL);
-    xhr.setRequestHeader("Authorization", "Token 491253f4-5692-45cf-84de-50bcaa91f76d");
+    xhr.setRequestHeader("Authorization", "Token e5cbceff-f102-4d24-9a49-43435ed7a834");
     xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
     xhr.timeout = 10 * 1000; // 10 seconds
     xhr.onload = function(content) {
