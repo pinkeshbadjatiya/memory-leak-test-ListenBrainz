@@ -13,3 +13,4 @@ Code for testing out memory leak test for Listenbrainz
   Just change the appropriate page name.
 - I have hardcoded the `numberOfpages` to 500 for consistency.
 - The lastfm channel is `nasasie`
+- XHRPool size is `10`
